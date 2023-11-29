@@ -51,14 +51,42 @@ function createCards() {
     })
 }
 
+function checkGameWin() {
+    const disabledCards = document.querySelectorAll(".disabledCard");
+    if (disabledCards.length === 2) {
+        clearInterval(finishTimerInterval);
+
+        const userData = {
+            name: storagePlayerName,
+            time: timer.textContent,
+        };
+
+        const storageRank =
+        JSON.parse(localStorage.getItem("@memoryGame:rank"));
+
+        if (storageRank) {
+          console.log(storageRank);
+          const rankData = [...storageRank, userData]
+          localStorage.setItem("@memoryGame:rank", JSON.stringify(rankData));
+        } else {
+          localStorage.setItem("@memoryGame:rank", JSON.stringify([userData]));
+        }
+        
+
+        alert(`Parabéns ${storagePlayerName}, você venceu com tempo de ${timer.innerHTML}!`);
+    }
+}
+
 function checkMatchCards() {
-    if (firstCard.getAttribute("name") ===
-    secondCard.getAttribute("name")) {
+    if (firstCard.getAttribute("name") === secondCard.getAttribute("name")) {
         new Audio("../audios/sci-fi.wav").play();
-        firstCard.classList.add("disabledCard");
-        secondCard.classList.add("disabledCard");
-        firstCard = "";
-        secondCard = "";
+        setTimeout(() => {
+            firstCard.classList.add("disabledCard");
+            secondCard.classList.add("disabledCard");
+            firstCard = "";
+            secondCard = "";
+            checkGameWin();
+        }, 500)
     } else {
         setTimeout(() => {
             firstCard.classList.remove("flipCard")
@@ -88,9 +116,21 @@ function clickFlipCard() {
     });
 }
 
+function setStartTimer() {
+    finishTimerInterval = setInterval(() => {
+        const dateNow = new Date();
+        const dateDiff = new Date(dateNow - initialDateTimer);
+        const minutes = String (dateDiff.getMinutes()).padStart("2", "0");
+        const seconds = String (dateDiff.getSeconds()).padStart("2", "0");
+
+        timer.innerHTML = `${minutes}:${seconds}`;
+    }, 1000);
+}
+
 const playerName = document.querySelector(".playerName");
 const backButton = document.querySelector(".backButton");
 const gridCards = document.querySelector(".gridCards");
+const timer = document.querySelector(".timer");
 
 
 const storagePlayerName = localStorage.getItem("@memoryGame:playerName");
@@ -102,5 +142,9 @@ backButton.addEventListener("click", backPage);
 createCards();
 
 let firstCard = "";
-let secondCard ="";
+let secondCard = "";
 clickFlipCard();
+
+const initialDateTimer = new Date();
+let finishTimerInterval;
+setStartTimer();
